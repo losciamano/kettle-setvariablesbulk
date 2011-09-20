@@ -190,8 +190,8 @@ public class SetVariablesBulkMeta extends BaseStepMeta implements StepMetaInterf
 	
 	public void setDefault()
 	{
-		variableNameField = "name";
-		variableValueField = "value";
+		variableNameField = "";
+		variableValueField = "";
 		variableType = VARIABLE_TYPE_JVM;
 		usingFormatting = true;
 	}

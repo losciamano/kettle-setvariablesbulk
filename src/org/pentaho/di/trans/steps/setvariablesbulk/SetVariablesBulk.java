@@ -107,131 +107,128 @@ public class SetVariablesBulk extends BaseStep implements StepInterface
 	        int nameIndex = data.outputMeta.indexOfValue(meta.getVariableNameField());
 	 	if (nameIndex<0)
 	    	{
-    		throw new KettleException("Unable to find field ["+meta.getVariableNameField()+"] in input row");
-    	}
-    	ValueMetaInterface nameValueMeta = data.outputMeta.getValueMeta(nameIndex);
-    	Object nameValueData = rowData[nameIndex];
+    			throw new KettleException("Unable to find field ["+meta.getVariableNameField()+"] in input row");
+    		}
+	    	ValueMetaInterface nameValueMeta = data.outputMeta.getValueMeta(nameIndex);
+	    	Object nameValueData = rowData[nameIndex];
    	
-	// Get variable value
-    	//
-    	if (meta.isUsingFormatting()) {
-    		varname=nameValueMeta.getString(nameValueData);
-    	} else {
-    		varname=nameValueMeta.getCompatibleString(nameValueData);
-    	}       
-
-        if (Const.isEmpty(varname))
-        {
-            if (Const.isEmpty(value))
-            {
-                throw new KettleException("Variable value Field was not specifiedi");
-            }
-            else
-            {
-                throw new KettleException("There was no variable name field specified.");
-            }
-        }
+		// Get variable value
+	    	//
+	    	if (meta.isUsingFormatting()) {
+	    		varname=nameValueMeta.getString(nameValueData);
+	    	} else {
+	    		varname=nameValueMeta.getCompatibleString(nameValueData);
+	    	}       
+	
+        	if (Const.isEmpty(varname))
+	        {
+	            if (Const.isEmpty(value))
+	            {
+	                throw new KettleException("Variable value Field was not specifiedi");
+	            }
+	       	    else
+        	    {
+	                throw new KettleException("There was no variable name field specified.");
+        	    }
+	        }
         
+        	Job parentJob = null;
         
-        Job parentJob = null;
-        
-        // We always set the variable in this step and in the parent transformation...
-        //
-        setVariable(varname, value);
+	        // We always set the variable in this step and in the parent transformation...
+        	//
+        	setVariable(varname, value);
 
-        // Set variable in the transformation
-        //
-        Trans trans = getTrans();
-        trans.setVariable(varname, value);
+	        // Set variable in the transformation
+	        //
+	        Trans trans = getTrans();
+	        trans.setVariable(varname, value);
 
-        // Make a link between the transformation and the parent transformation (in a sub-transformation)
-        //
-        while (trans.getParentTrans()!=null) {
-        	trans = trans.getParentTrans();
-        	trans.setVariable(varname, value);
-        }
-        
-        // The trans object we have now is the trans being executed by a job.
-        // It has one or more parent jobs.
-        // Below we see where we need to this value as well...  
-        //
-        switch(meta.getVariableType())
-        {
-        case SetVariablesBulkMeta.VARIABLE_TYPE_JVM: 
-
-            System.setProperty(varname, value);
-
-            parentJob = trans.getParentJob();
-            while (parentJob!=null)
-            {                           
-                parentJob.setVariable(varname, value);
-                parentJob = parentJob.getParentJob();
-            }
-            
-            break;
-        case SetVariablesBulkMeta.VARIABLE_TYPE_ROOT_JOB:
-            {
-                // Comments by SB
-                // VariableSpace rootJob = null;
-                parentJob = trans.getParentJob();
-                while (parentJob!=null)
-                {                           
-                    parentJob.setVariable(varname, value);
-                    //rootJob = parentJob;
-                    parentJob = parentJob.getParentJob();
-                }
-                // OK, we have the rootjob, set the variable on it...
-                //if (rootJob==null)
-                //{
-                //   throw new KettleStepException("Can't set variable ["+varname+"] on root job: the root job is not available (meaning: not even the parent job)");
-                //}
-                //  Comment: why throw an exception on this?
-            }
-            break;
-        case SetVariablesBulkMeta.VARIABLE_TYPE_GRAND_PARENT_JOB:
-            {
-                // Set the variable in the parent job 
-                //
-                parentJob = trans.getParentJob();
-                if (parentJob!=null)
-                {
-                	parentJob.setVariable(varname, value);
-                }
-                else
-                {
-                	throw new KettleStepException("Can't set variable ["+varname+"] on parent job: the parent job is not available");
-                }
-
-                // Set the variable on the grand-parent job
-                //
-                VariableSpace gpJob = trans.getParentJob().getParentJob();
-                if (gpJob!=null)
-                {
-                    gpJob.setVariable(varname, value);
-                }
-                else
-                {
-                    throw new KettleStepException("Can't set variable ["+varname+"] on grand parent job: the grand parent job is not available");
-                }
+	        // Make a link between the transformation and the parent transformation (in a sub-transformation)
+	        //
+	        while (trans.getParentTrans()!=null) {
+	        	trans = trans.getParentTrans();
+        		trans.setVariable(varname, value);
+		}
+	        
+	        // The trans object we have now is the trans being executed by a job.
+	        // It has one or more parent jobs.
+	        // Below we see where we need to this value as well...  
+	        //
+	        switch(meta.getVariableType())
+	        {
+        		case SetVariablesBulkMeta.VARIABLE_TYPE_JVM: 
+		            System.setProperty(varname, value);
+		            parentJob = trans.getParentJob();
+		            while (parentJob!=null)
+		            {                           
+		                parentJob.setVariable(varname, value);
+		                parentJob = parentJob.getParentJob();
+		            }
+	            
+		            break;
+		        case SetVariablesBulkMeta.VARIABLE_TYPE_ROOT_JOB:
+		       	{
+		                // Comments by SB
+		                // VariableSpace rootJob = null;
+		                parentJob = trans.getParentJob();
+		                while (parentJob!=null)
+		                {                           
+		                    parentJob.setVariable(varname, value);
+		                    //rootJob = parentJob;
+		                    parentJob = parentJob.getParentJob();
+		                }
+		                // OK, we have the rootjob, set the variable on it...
+		                //if (rootJob==null)
+		                //{
+		                //   throw new KettleStepException("Can't set variable ["+varname+"] on root job: the root job is not available (meaning: not even the parent job)");
+		                //}
+		                //  Comment: why throw an exception on this?
+			       }
+	        		break;
+		        case SetVariablesBulkMeta.VARIABLE_TYPE_GRAND_PARENT_JOB:
+			{
+		                // Set the variable in the parent job 
+		                //
+		                parentJob = trans.getParentJob();
+		                if (parentJob!=null)
+	        	        {
+		                	parentJob.setVariable(varname, value);
+		                }
+		                else
+	        	        {
+		                	throw new KettleStepException("Can't set variable ["+varname+"] on parent job: the parent job is not available");
+                		}
+	
+		                // Set the variable on the grand-parent job
+		                //
+		                VariableSpace gpJob = trans.getParentJob().getParentJob();
+		                if (gpJob!=null)
+        		        {
+		                    gpJob.setVariable(varname, value);
+                		}
+		                else
+                		{
+		                    throw new KettleStepException("Can't set variable ["+varname+"] on grand parent job: the grand parent job is not available");
+                		}
                 
-            }
-            break;
-        case SetVariablesBulkMeta.VARIABLE_TYPE_PARENT_JOB:
-            {                        
-                // Set the variable in the parent job 
-                //
-                parentJob = trans.getParentJob();
-                if (parentJob!=null)
-                {
-                	parentJob.setVariable(varname, value);
-                }
-                else
-                {
-                	throw new KettleStepException("Can't set variable ["+varname+"] on parent job: the parent job is not available");
-                }
-            }
+		        }
+		        break;
+			case SetVariablesBulkMeta.VARIABLE_TYPE_PARENT_JOB:
+		        {                        
+		                // Set the variable in the parent job 
+	        	        //
+		                parentJob = trans.getParentJob();
+	                	if (parentJob!=null)
+		                {
+		                	parentJob.setVariable(varname, value);
+		                }
+		                else
+		                {
+		                	throw new KettleStepException("Can't set variable ["+varname+"] on parent job: the parent job is not available");
+		                }
+		         }
 	    }               
-            logBasic(BaseMessages.getString(PKG, "SetVariablesBulk.Log.SetVariablesBulkToValue",meta.getVariableNameField(),value));
+            logBasic(BaseMessages.getString(PKG, "SetVariablesBulk.Log.SetVariablesBulkToValue",varname,value));
 	}
 	
 	public void dispose(StepMetaInterface smi, StepDataInterface sdi)

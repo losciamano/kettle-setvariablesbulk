@@ -5,7 +5,7 @@
    description="Set a bulk of variables taking variable name and value from the row stream"
    tooltip="Set a bulk of variables from row stream"
    category="Job"
-   classname="org.pentaho.di.trans.steps.setvariablesbulk.SetVariablesBulkMedia">
+   classname="org.pentaho.di.trans.steps.setvariablesbulk.SetVariablesBulkMeta">
    <libraries>
     <library name="setvariablesbulk.jar"/>
     </libraries>

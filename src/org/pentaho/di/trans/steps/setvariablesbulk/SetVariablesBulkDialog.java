@@ -89,15 +89,16 @@ public class SetVariablesBulkDialog extends BaseStepDialog implements StepDialog
 	private FormData     fdlVariableValueField, fdVariableValueField;
 	private SetVariablesBulkMeta input;
 
-    private Map<String, Integer> inputFields;
+  	private Map<String, Integer> inputFields;
+	private String[] fieldComboItems;
     
-    private ColumnInfo[] colinf;
 	
 	public SetVariablesBulkDialog(Shell parent, Object in, TransMeta transMeta, String sname)
 	{
 		super(parent, (BaseStepMeta)in, transMeta, sname);
 		input=(SetVariablesBulkMeta)in;
-        inputFields =new HashMap<String, Integer>();
+    	        inputFields =new HashMap<String, Integer>();
+		fieldComboItems = new String[0];
 	}
 
 	public String open()
@@ -123,14 +124,14 @@ public class SetVariablesBulkDialog extends BaseStepDialog implements StepDialog
 		formLayout.marginHeight = Const.FORM_MARGIN;
 
 		shell.setLayout(formLayout);
-		shell.setText(BaseMessages.getString(PKG, "SetVariablesBulkDialog.DialogTitle")); //$NON-NLS-1$
+		shell.setText(BaseMessages.getString(PKG, "SetVariablesBulkDialog.DialogTitle")); 
 		
 		int middle = props.getMiddlePct();
 		int margin = Const.MARGIN;
 
 		// Stepname line
 		wlStepname=new Label(shell, SWT.RIGHT);
-		wlStepname.setText(BaseMessages.getString(PKG, "SetVariablesBulkDialog.Stepname.Label")); //$NON-NLS-1$
+		wlStepname.setText(BaseMessages.getString(PKG, "SetVariablesBulkDialog.Stepname.Label"));
  		props.setLook(wlStepname);
 		fdlStepname=new FormData();
 		fdlStepname.left = new FormAttachment(0, 0);
@@ -147,7 +148,7 @@ public class SetVariablesBulkDialog extends BaseStepDialog implements StepDialog
 		wStepname.setLayoutData(fdStepname);
 
 		wlFormat=new Label(shell, SWT.RIGHT);
-		wlFormat.setText(BaseMessages.getString(PKG, "SetVariablesBulkDialog.Format.Label")); //$NON-NLS-1$
+		wlFormat.setText(BaseMessages.getString(PKG, "SetVariablesBulkDialog.Format.Label"));
 		wlFormat.setToolTipText(BaseMessages.getString(PKG, "SetVariablesBulkDialog.Format.Tooltip")); //$NON-NLS-1$
  		props.setLook(wlFormat);
 		fdlFormat=new FormData();
@@ -169,7 +170,7 @@ public class SetVariablesBulkDialog extends BaseStepDialog implements StepDialog
 		fdlVariableType = new FormData();
 		fdlVariableType.left = new FormAttachment(0,0);
 		fdlVariableType.right = new FormAttachment(middle,-margin);
-		fdlVariableType.top = new FormAttachment(0,margin);
+		fdlVariableType.top = new FormAttachment(wFormat,margin);
 		wlVariableType.setLayoutData(fdlVariableType);
 		wVariableType = new CCombo(shell,SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER);
 		wVariableType.setToolTipText(BaseMessages.getString(PKG,"SetVariablesBulkDialog.VariableType.Tooltip"));
@@ -177,7 +178,7 @@ public class SetVariablesBulkDialog extends BaseStepDialog implements StepDialog
 		props.setLook(wVariableType);
 		fdVariableType=new FormData();
 		fdVariableType.left = new FormAttachment(middle,0);
-		fdVariableType.top = new FormAttachment(0,margin);
+		fdVariableType.top = new FormAttachment(wFormat,margin);
 		fdVariableType.right = new FormAttachment(100,0);
 		wVariableType.setLayoutData(fdVariableType);
 
@@ -187,15 +188,17 @@ public class SetVariablesBulkDialog extends BaseStepDialog implements StepDialog
 		fdlVariableNameField = new FormData();
 		fdlVariableNameField.left = new FormAttachment(0,0);
 		fdlVariableNameField.right = new FormAttachment(middle,-margin);
-		fdlVariableNameField.top = new FormAttachment(0,margin);
+		fdlVariableNameField.top = new FormAttachment(wVariableType,margin);
 		wlVariableNameField.setLayoutData(fdlVariableNameField);
 		wVariableNameField = new CCombo(shell,SWT.BORDER | SWT.READ_ONLY);
 		wVariableNameField.setToolTipText(BaseMessages.getString(PKG,"SetVariablesBulkDialog.VariableNameField.Tooltip"));
 		wVariableNameField.setEditable(true);
+		wVariableNameField.addModifyListener(lsMod);
 		props.setLook(wVariableNameField);
+		wVariableNameField.setItems(fieldComboItems);
 		fdVariableNameField=new FormData();
 		fdVariableNameField.left = new FormAttachment(middle,0);
-		fdVariableNameField.top = new FormAttachment(0,margin);
+		fdVariableNameField.top = new FormAttachment(wVariableType,margin);
 		fdVariableNameField.right = new FormAttachment(100,0);
 		wVariableNameField.setLayoutData(fdVariableNameField);
 
@@ -205,15 +208,17 @@ public class SetVariablesBulkDialog extends BaseStepDialog implements StepDialog
 		fdlVariableValueField = new FormData();
 		fdlVariableValueField.left = new FormAttachment(0,0);
 		fdlVariableValueField.right = new FormAttachment(middle,-margin);
-		fdlVariableValueField.top = new FormAttachment(0,margin);
+		fdlVariableValueField.top = new FormAttachment(wVariableNameField,margin);
 		wlVariableValueField.setLayoutData(fdlVariableValueField);
 		wVariableValueField = new CCombo(shell,SWT.BORDER | SWT.READ_ONLY);
 		wVariableValueField.setToolTipText(BaseMessages.getString(PKG,"SetVariablesBulkDialog.VariableValueField.Tooltip"));
 		wVariableValueField.setEditable(true);
+		wVariableValueField.setItems(fieldComboItems);
+		wVariableValueField.addModifyListener(lsMod);
 		props.setLook(wVariableValueField);
 		fdVariableValueField=new FormData();
 		fdVariableValueField.left = new FormAttachment(middle,0);
-		fdVariableValueField.top = new FormAttachment(0,margin);
+		fdVariableValueField.top = new FormAttachment(wVariableNameField,margin);
 		fdVariableValueField.right = new FormAttachment(100,0);
 		wVariableValueField.setLayoutData(fdVariableValueField);
 
@@ -253,8 +258,30 @@ public class SetVariablesBulkDialog extends BaseStepDialog implements StepDialog
 */
 		
 		  // 
-        // Search the fields in the background
-		
+		Runnable runnable = new Runnable()
+		{
+			public void run()
+			{
+				try
+				{
+					RowMetaInterface inputfields = transMeta.getPrevStepFields(stepname);
+                			if (inputfields!=null)
+			                {
+    						for (int i=0;i<inputfields.size();i++)
+	    					{
+	    						wVariableNameField.add(inputfields.getValueMeta(i).getName() );
+	    						wVariableValueField.add(inputfields.getValueMeta(i).getName() );
+	    					}
+         			        }
+				}
+				catch(Exception ke)
+				{
+					new ErrorDialog(shell, BaseMessages.getString(PKG, "SetVariablesBulkDialog.Dialog.FailedToGetFields.DialogTitle"), BaseMessages.getString(PKG, "SetVariablesBulkDialog.FailedToGetFields.DialogMessage"), ke); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+			}
+		};
+		display.asyncExec(runnable);
+/*	
 		final Runnable runnable = new Runnable()
 		{
 		    public void run()
@@ -281,14 +308,14 @@ public class SetVariablesBulkDialog extends BaseStepDialog implements StepDialog
 		    }
 		};
 		new Thread(runnable).start();
-					
+			*/		
 			// Some buttons
 		wOK=new Button(shell, SWT.PUSH);
 		wOK.setText(BaseMessages.getString(PKG, "System.Button.OK")); //$NON-NLS-1$
 		wCancel=new Button(shell, SWT.PUSH);
 		wCancel.setText(BaseMessages.getString(PKG, "System.Button.Cancel")); //$NON-NLS-1$
 
-		setButtonPositions(new Button[] { wOK, wCancel }, margin,wVariableNameField);
+		setButtonPositions(new Button[] { wOK, wCancel }, margin,wVariableValueField);
 
 			// Add listeners
 		lsCancel = new Listener() { public void handleEvent(Event e) { cancel(); } };
@@ -314,22 +341,21 @@ public class SetVariablesBulkDialog extends BaseStepDialog implements StepDialog
 	}
 	protected void setComboBoxes()
 	{
-        // Something was changed in the row.
-        //
-        final Map<String, Integer> fields = new HashMap<String, Integer>();
-        
-        // Add the currentMeta fields...
-        fields.putAll(inputFields);
-        
-        Set<String> keySet = fields.keySet();
-        List<String> entries = new ArrayList<String>(keySet);
-
-        String fieldNames[] = (String[]) entries.toArray(new String[entries.size()]);
-
-        Const.sortStrings(fieldNames);
-	wVariableNameField.setItems(fieldNames);
-	wVariableValueField.setItems(fieldNames);
-    }
+       		 // Something was changed in the row.
+	        //
+	        final Map<String, Integer> fields = new HashMap<String, Integer>();
+	        
+	        // Add the currentMeta fields...
+	        fields.putAll(inputFields);
+	        
+        	Set<String> keySet = fields.keySet();
+	        List<String> entries = new ArrayList<String>(keySet);
+		
+	        String fieldNames[] = (String[]) entries.toArray(new String[entries.size()]);
+	
+	        Const.sortStrings(fieldNames);
+		fieldComboItems = fieldNames;
+	}
 	/**
 	 * Copy information from the meta-data input to the dialog fields.
 	 */ 
