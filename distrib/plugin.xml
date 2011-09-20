@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin
+   id="Set Variables Bulk"
+   iconfile="SVAB.png"
+   description="Set a bulk of variables taking variable name and value from the row stream"
+   tooltip="Set a bulk of variables from row stream"
+   category="Job"
+   classname="org.pentaho.di.trans.steps.setvariablesbulk.SetVariablesBulkMedia">
+   <libraries>
+    <library name="setvariablesbulk.jar"/>
+    </libraries>
+    
+   <localized_category>
+     <category locale="en_US">Job</category>
+     <category locale="it_IT">Job</category>
+   </localized_category>
+   <localized_description>
+     <description locale="en_US">Set Variables Bulk</description>
+     <description locale="it_IT">Set Variables Bulk</description>
+   </localized_description>
+   <localized_tooltip>
+     <tooltip locale="en_US">Set a bulk of variables from row stream</tooltip>
+     <tooltip locale="it_IT">et a bulk of variables from row stream</tooltip>
+   </localized_tooltip>
+   
+</plugin>
