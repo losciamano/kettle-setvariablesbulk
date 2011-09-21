@@ -1,4 +1,4 @@
-<project name="MongoDBInput" default="default" basedir=".">
+<project name="SetVariablesBulk" default="default" basedir=".">
 
 	  <description>
 		Set Variables Bulk Plugin
